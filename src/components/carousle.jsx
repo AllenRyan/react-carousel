@@ -1,49 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 
-const Carousel = ({images, captions }) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
+const Carousel = ({ images, captions }) => {
+    const [currentIndex, setCurrentIndex] = useState(1); 
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const timeoutRef = useRef(null);
 
-    function handleNext() {
-        setCurrentIndex((prevIndex) =>
-            prevIndex + 1 === images.length ? 0 : prevIndex + 1
-        );
-    }
 
-    function handlePrev() {
-        setCurrentIndex((prevIndex) =>
-            prevIndex - 1 < 0 ? images.length -1 : prevIndex - 1
-        );
-    }
+    const extendedImages = [images[images.length - 1], ...images, images[0]];
 
-    console.log(currentIndex)
+    useEffect(() => {
+        if (isTransitioning) {
+            timeoutRef.current = setTimeout(() => {
+                setIsTransitioning(false);
+                if (currentIndex === 0) {
+                    setCurrentIndex(images.length);
+                } else if (currentIndex === images.length + 1) {
+                    setCurrentIndex(1);
+                }
+            }, 500); 
+        }
 
-    function handleIndicatorClick(index) {
-        setCurrentIndex(index);
-    }
+        return () => clearTimeout(timeoutRef.current);
+    }, [currentIndex, isTransitioning, images.length]);
+
+    const handleNext = () => {
+        if (!isTransitioning) {
+            setCurrentIndex((prevIndex) => prevIndex + 1);
+            setIsTransitioning(true);
+        }
+    };
+
+    const handlePrev = () => {
+        if (!isTransitioning) {
+            setCurrentIndex((prevIndex) => prevIndex - 1);
+            setIsTransitioning(true);
+        }
+    };
+
+    const handleIndicatorClick = (index) => {
+        setCurrentIndex(index + 1);
+        setIsTransitioning(true);
+    };
 
     return (
         <div className='carousel'>
             <GrFormPrevious className='btn' onClick={handlePrev} />
             <div className='img'>
-              {images.map((img, i) => (
-                <img className='images' style={{translate: `${-100 * currentIndex}%`}}
-                  key={i}
-                  src={img}
-              />
-              ))}
-               
+                <div className={`images-wrapper ${isTransitioning ? 'transition' : ''}`} style={{ transform: `translateX(${-100 * currentIndex}%)` }}>
+                    {extendedImages.map((img, i) => (
+                        <img className='image' key={i} src={img} alt={`Slide ${i}`} />
+                    ))}
+                </div>
                 <div className='captions'>
-                    {captions[currentIndex]}
+                    {captions[(currentIndex - 1 + images.length) % images.length]}
                 </div>
             </div>
             <GrFormNext className='btn2' onClick={handleNext} />
-            
             <div className='indicators'>
                 {images.map((_, index) => (
                     <button
                         key={index}
-                        className={`indicator ${index === currentIndex ? 'active' : ''}`}
+                        className={`indicator ${index + 1 === currentIndex ? 'active' : ''}`}
                         onClick={() => handleIndicatorClick(index)}
                     />
                 ))}
