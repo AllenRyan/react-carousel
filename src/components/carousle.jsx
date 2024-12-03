@@ -6,13 +6,13 @@ const Carousel = ({images, captions }) => {
 
     function handleNext() {
         setCurrentIndex((prevIndex) =>
-            prevIndex + 1 === images.length ? prevIndex : prevIndex + 1
+            prevIndex + 1 === images.length ? 0 : prevIndex + 1
         );
     }
 
     function handlePrev() {
         setCurrentIndex((prevIndex) =>
-            prevIndex - 1 < 0 ? prevIndex : prevIndex - 1
+            prevIndex - 1 < 0 ? images.length -1 : prevIndex - 1
         );
     }
 
